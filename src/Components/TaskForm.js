@@ -77,7 +77,7 @@ class TaskForm extends Component {
                                 <div className="panel-body">
                                     <form onSubmit = { this.onSubmit } >
                                         <div className="form-group" >
-                                            <label>Tên: </label>
+                                            <label>ジョブ: </label>
                                             <input
                                                 type="text"
                                                 className="form-control"
