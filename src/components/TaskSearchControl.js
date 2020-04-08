@@ -22,6 +22,7 @@ class TaskSearchControl extends Component {
     render() {
         return (
             <div className="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                {/* search control */}
                 <div className="input-group">
                     <input
                         name="keyword"
@@ -37,6 +38,7 @@ class TaskSearchControl extends Component {
                         </button>
                     </span>
                 </div>
+                {/* search control */}
             </div>
         );
     }

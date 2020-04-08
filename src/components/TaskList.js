@@ -19,6 +19,7 @@ class TaskList extends Component {
         this.setState({
             [name] : value
         });
+        console.log(this.state)
     }
 
     render() {
@@ -52,13 +53,13 @@ class TaskList extends Component {
                             <tr>
                                 <td></td>
                                 <td>
-                                    <input
+                                    {/* <input
                                         type="text"
                                         className="form-control"
                                         name="filterName"
                                         onChange={ this.onChange }
                                         value={ this.state.filerName }
-                                    />
+                                    /> */}
                                 </td>
                                 <td>
                                     <select

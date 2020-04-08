@@ -191,12 +191,14 @@ class App extends Component {
                         <button type="button" className="btn btn-primary" onClick={this.onToggleForm} >
                             <span className="fa fa-plus mr-5"></span>Thêm Công Việc
                         </button>
+                        {/* aaaaaaa */}
                         <TaskControl
                             onSearch={this.onSearch}
                             onSort={this.onSort}
                             sortBy={sortBy}
                             sortValue={sortValue}
                         />
+                        {/* kkkkkkkkkk */}
                         <TaskList
                             tasks={tasks}
                             onUpdateStatus={this.onUpdateStatus}
