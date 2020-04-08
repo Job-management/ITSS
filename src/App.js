@@ -1,235 +1,211 @@
 import React, { Component } from 'react';
 import './App.css';
-import TaskForm from './Components/TaskForm';
-import Control from './Components/Control';
-import TaskList from './Components/TaskList';
+import TaskList from './components/TaskList';
+import TaskForm from './components/TaskForm';
+import TaskControl from './components/TaskControl';
 
 class App extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            tasks: [],
-            isDisplayForm: false,
-            taskEditing: null,
-            filter: {
-                name: '',
-                status: -1
-            },
-            keyword: '',
-            sortBy: 'name',
-            sortValue: 1
-        }
-        this.onToggleForm = this.onToggleForm.bind(this);
-        this.onCloseForm = this.onCloseForm.bind(this);
+            tasks : [],
+            isDisplayForm : false,
+            keyword : '',
+            filterName : '',
+            filterStatus : '-1',
+            itemEditing : null,
+            sortBy : 'name',
+            sortValue : 1
+        };
     }
 
     componentWillMount() {
-        if (localStorage && localStorage.getItem('tasks')) {
+        if(localStorage && localStorage.getItem('tasks')){
             var tasks = JSON.parse(localStorage.getItem('tasks'));
             this.setState({
-                tasks: tasks
+                tasks : tasks
             });
         }
     }
 
     s4() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+        return  Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }
 
-    generateID() {
-        return this.s4() + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + this.s4();
+    guid() {
+        return this.s4() + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + this.s4() + this.s4();
     }
 
-    onToggleForm() {
-        this.setState({
-            isDisplayForm: true,
-            taskEditing: null
-        });
-    }
-
-    onShowForm() {
-        this.setState({
-            isDisplayForm: true
-        });
-    }
-
-    onCloseForm() {
-        this.setState({
-            isDisplayForm: false
-        });
-    }
-
-    onSubmit = (data) => {
-        console.log("RENDER TASK data = ", data)
-
-        var { tasks } = this.state;
-        if (data.id === ' ') {
-            data.id = this.generateID();
-            console.log("push data")
-            tasks.push(data);
-        } else {
-            //Editing
-            var index = this.findIndex(data.id);
-            tasks[index] = data;
-        }
-
-        this.setState({
-            tasks: tasks,
-            taskEditing: null
-        });
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
-
-    onUpdateStatus = (id) => {
-        var { tasks } = this.state;
-        var index = this.findIndex(id);
-        if (index !== -1) {
-            tasks[index].status = !tasks[index].status;
-            this.setState({
-                tasks: tasks
-            });
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-        }
-    }
     findIndex = (id) => {
         var { tasks } = this.state;
         var result = -1;
         tasks.forEach((task, index) => {
-            if (task.id === id) {
+            if(task.id === id){
                 result = index;
             }
         });
         return result;
     }
 
-    onDelete = (id) => {
-        var { tasks } = this.state;
+    onUpdateStatus = (id) => {
+        var tasks = this.state.tasks;
         var index = this.findIndex(id);
-        if (index !== -1) {
-            tasks.splice(index, 1);
-            this.setState({
-                tasks: tasks
-            });
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-        }
-        this.onCloseForm();
-    }
-
-    onUpdate = (id) => {
-        var { tasks } = this.state;
-        var index = this.findIndex(id);
-        var taskEditing = tasks[index];
+        tasks[index].status = !tasks[index].status;
         this.setState({
-            taskEditing: taskEditing
+            tasks : tasks
         });
-        this.onShowForm();
+        localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
-    onFilter = (filterName, filterStatus) => {
-        filterStatus = parseInt(filterStatus, 10);
+    onSave = (data) => {
+        var tasks = this.state.tasks;
+        data.status = data.status === 'true' ? true : false;
+        if(data.id === ''){
+            data.id = this.guid();
+            tasks.push(data);
+        }else{
+            var index = this.findIndex(data.id);
+            tasks[index] = data;
+        }
         this.setState({
-            filter: {
-                name: filterName.toLowerCase(),
-                status: filterStatus
-            }
-        })
+            tasks : tasks
+        });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    onToggleForm = () => {
+        if(this.state.itemEditing !== null){
+            this.setState({
+                itemEditing : null
+            });
+        }else{
+            this.setState({
+                isDisplayForm : !this.state.isDisplayForm
+            });
+        }
+    }
+
+    onExitForm = () =>{
+        this.setState({
+            isDisplayForm : false,
+            itemEditing : null
+        });
+    }
+
+    onDeleteTask = (id) => {
+        var { tasks } = this.state;
+        var index = this.findIndex(id);
+        tasks.splice(index, 1);
+        this.setState({
+            tasks : tasks
+        });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        this.onExitForm();
     }
 
     onSearch = (keyword) => {
         this.setState({
-            keyword: keyword
+            keyword : keyword
+        });
+    }
+
+    onFilter = (filterName, filterStatus) => {
+        this.setState({
+            filterName : filterName,
+            filterStatus : filterStatus
+        });
+    }
+
+    onSelectedItem = (item) => {
+        this.setState({
+            itemEditing : item,
+            isDisplayForm : true
         })
     }
 
     onSort = (sortBy, sortValue) => {
         this.setState({
-            sortBy: sortBy,
-            sortValue: sortValue
-        });
+            sortBy : sortBy,
+            sortValue : sortValue
+        })
     }
+
     render() {
-        var { tasks, isDisplayForm, taskEditing, filter, keyword, sortBy, sortValue } = this.state; //giong voi var tasks = this.state.tasks
-        if (filter) {
-            console.log("run filter")
-            if (filter.name) {
-                tasks = tasks.filter((task) => {
-                    return task.name.toLowerCase().indexOf(filter.name) !== -1;
-                });
-            }
+        var {
+            tasks,
+            isDisplayForm,
+            keyword, filterName,
+            filterStatus,
+            itemEditing,
+            sortBy,
+            sortValue
+        } = this.state;
+
+        tasks = tasks.filter((task) => {
+            return task.name.toLowerCase().indexOf(keyword.toLowerCase()) !== -1;
+        });
+
+        if(filterName){
             tasks = tasks.filter((task) => {
-                if (filter.status === -1) {
+                return task.name.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
+            });
+        }
+        if(filterStatus){
+            tasks = tasks.filter((task) => {
+                if(filterStatus === '-1' || filterStatus === -1){
                     return task;
-                } else {
-                    return task.status === (filter.status === 1 ? true : false)
+                }else{
+                    return task.status === (parseInt(filterStatus, 10) === 1 ? true : false);
                 }
             });
         }
-        if (keyword) {
-            tasks = tasks.filter((task) => {
-                return task.name.toLowerCase().indexOf(keyword) !== -1;
+        if(sortBy === 'name'){
+            tasks.sort((a, b) => {
+                if(a.name > b.name) return sortValue;
+                else if(a.name < b.name) return -sortValue;
+                else return 0;
+            });
+        }else{
+            tasks.sort((a, b) => {
+                if(a.status > b.status) return -sortValue;
+                else if(a.status < b.status) return sortValue;
+                else return 0;
             });
         }
-        if (sortBy === 'name') {
-            tasks.sort((a, b) => {
-                if (a.name.toLowerCase() > b.name.toLowerCase()) return sortValue;
-                else if (a.name < b.name) return -sortValue;
-                else return 0;
-            })
-        } else {
-            tasks.sort((a, b) => {
-                if (a.status > b.status) return -sortValue;
-                else if (a.name < b.name) return sortValue;
-                else return 0;
-            })
-        }
-
-        var elmTaskForm = isDisplayForm ? <TaskForm onSubmit_props={this.onSubmit}
-            onCloseForm={this.onCloseForm}
-            task={taskEditing}
-        /> : '';
+        var elmForm = isDisplayForm === true ? <TaskForm
+                                                    onSave={this.onSave}
+                                                    onExitForm={this.onExitForm}
+                                                    itemEditing={ itemEditing }
+                                                    /> : '';
         return (
             <div className="container">
                 <div className="text-center">
-                    <h1>ジョブ管理</h1><hr />
+                    <h1>Quản Lý Công Việc</h1><hr/>
                 </div>
                 <div className="row">
-                    <div className={isDisplayForm ? 'col-xs-4 col-sm-4 col-md-4 col-lg-4' : ''} >
-                        {/*form*/}
-                        {/*<TaskForm />*/}
-                        {elmTaskForm}
+                    <div className={ isDisplayForm === true ? 'col-xs-4 col-sm-4 col-md-4 col-lg-4' : '' }>
+                        { elmForm }
                     </div>
-                    <div className={isDisplayForm ? 'col-xs-8 col-sm-8 col-md-8 col-lg-8' : 'col-xs-12 col-sm-12 col-md-12 col-lg-12'}>
-                        <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={this.onToggleForm}
-                        >
-                            <span className="fa fa-plus mr-5" ></span>ジョブ追加
-                            </button>
-                            &nbsp;
-
-                            {/*Search -Sort */}
-                        <div className="row mt-15">
-                            <Control
-                                onSearch={this.onSearch}
-                                onSort={this.onSort}
-                                sortBy={sortBy}
-                                sortValue={sortValue}
-                            />
-                            {/*List*/}
-                            <div className="row" >
-                                <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12 mt-15" >
-                                    <TaskList
-                                        tasks_props={tasks}
-                                        onUpdateStatus_props={this.onUpdateStatus}
-                                        onDelete={this.onDelete}
-                                        onUpdate={this.onUpdate}
-                                        onFilter={this.onFilter}
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                    <div className={ isDisplayForm === true ? 'col-xs-8 col-sm-8 col-md-8 col-lg-8' : 'col-xs-12 col-sm-12 col-md-12 col-lg-12' }>
+                        <button type="button" className="btn btn-primary" onClick={this.onToggleForm} >
+                            <span className="fa fa-plus mr-5"></span>Thêm Công Việc
+                        </button>
+                        <TaskControl
+                            onSearch={this.onSearch}
+                            onSort={this.onSort}
+                            sortBy={sortBy}
+                            sortValue={sortValue}
+                        />
+                        <TaskList
+                            tasks={tasks}
+                            onUpdateStatus={this.onUpdateStatus}
+                            onDeleteTask={this.onDeleteTask}
+                            filterName={filterName}
+                            filterStatus={filterStatus}
+                            onFilter={this.onFilter}
+                            onSelectedItem={this.onSelectedItem}
+                        />
                     </div>
                 </div>
             </div>
